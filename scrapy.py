@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import pdfplumber
 import os
+import re
 from urllib.parse import urljoin
 URL = "https://www.diariooficial.interior.gob.cl/edicionelectronica/empresas_cooperativas.php?date=08-11-2024&edition=43993"  # Ajusta según sea necesario
 
@@ -55,13 +56,55 @@ def print_data(empresa):
     print(f"Tipo: {empresa['tipo']}")
     print(f"Empresa: {empresa['nombre_empresa']}")
     print(f"Enlace PDF: {empresa['enlace_pdf']}")
-    print("-" * 30)
+
+def extraer_informacion_pdf(enlace_pdf):
+    # Descargar el archivo PDF desde el enlace
+    print(enlace_pdf)
+    respuesta = requests.get(enlace_pdf)
+    nombre_pdf = "temp.pdf"
+    
+    # Guardar el PDF en un archivo temporal
+    with open(nombre_pdf, "wb") as archivo_pdf:
+        archivo_pdf.write(respuesta.content)
+    
+    # Abre el archivo PDF y extrae el texto
+    with pdfplumber.open(nombre_pdf) as pdf:
+        texto_extraido = ""
+        
+        # Itera a través de todas las páginas del PDF para extraer el contenido
+        for pagina in pdf.pages:
+            texto_extraido += pagina.extract_text()
+    #print(texto_extraido)
+    
+    
+    # Ejemplo de patrones de búsqueda (ajustar según la estructura de los PDF)
+    # Estos patrones pueden ser, por ejemplo, nombres de campos específicos en el documento PDF.
+    nombre_notario = re.search(r"EXTRACTO\n[\w]+[\s{1}\w}+]*", texto_extraido)
+    nombre = re.sub(r"EXTRACTO\n", "", nombre_notario.group(0)) if nombre_notario else "No encontrado"
+    CVE_obt = re.search(r"CVE\s[\d]*",texto_extraido)
+    CVE = re.sub(r"CVE\s","",CVE_obt.group(0)) if CVE_obt else "no entonctrado"
+    partes_involucradas = re.search(r"(don|doña)\s[\w\s]+",texto_extraido)
+
+    print(nombre,CVE,partes_involucradas)
+
 
 def main():
+    a = 0
+    b = 0
     empresas_datos= scrapper(URL)
         # Muestra los datos organizados
-    for empresa in empresas_datos:
-        if empresa['seccion'] == 'MODIFICACIÓN':
-            print_data(empresa)        
+    for empresa in empresas_datos :
+        if empresa['seccion'] == 'MODIFICACIÓN' and b < 2:
+            print_data(empresa)
+            print("-" * 30)
+
+            b+=1
+        elif empresa['seccion'] == 'CONSTITUCIÓN' and a <10:
+
+            print_data(empresa)
+            extraer_informacion_pdf(empresa['enlace_pdf'])
+            print("-" * 30)
+            a +=1
+
 
 main()
