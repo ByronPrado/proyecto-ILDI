@@ -79,13 +79,20 @@ def extraer_informacion_pdf(enlace_pdf):
     
     # Ejemplo de patrones de búsqueda (ajustar según la estructura de los PDF)
     # Estos patrones pueden ser, por ejemplo, nombres de campos específicos en el documento PDF.
-    nombre_notario = re.search(r"EXTRACTO\n[\w]+[\s{1}\w}+]*", texto_extraido)
-    nombre = re.sub(r"EXTRACTO\n", "", nombre_notario.group(0)) if nombre_notario else "No encontrado"
+    nombre_obt = re.search(r"EXTRACTO\n[\w]+[\s{1}\w}+]*", texto_extraido)
+    nombre_notario = re.sub(r"EXTRACTO\n", "", nombre_obt.group(0)) if nombre_obt else "No encontrado"
+    
     CVE_obt = re.search(r"CVE\s[\d]*",texto_extraido)
     CVE = re.sub(r"CVE\s","",CVE_obt.group(0)) if CVE_obt else "no entonctrado"
+    
     partes_involucradas = re.search(r"(don|doña)\s[\w\s]+",texto_extraido)
 
-    print(nombre,CVE,partes_involucradas)
+    capital_obt = re.search(r"(Capital|CAPITAL|capital):?[\w\s\n]*\$+[\d.]*", texto_extraido)
+    capital = re.sub(r"(Capital|CAPITAL|capital):?[\w\s\n]*","",capital_obt.group(0)) if capital_obt else "no encontrado"
+
+
+
+    print(nombre_notario,CVE,partes_involucradas,capital)
 
 
 def main():
