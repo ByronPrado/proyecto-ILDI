@@ -3,8 +3,13 @@ from bs4 import BeautifulSoup
 import pdfplumber
 import os
 import re
+from datetime import datetime, timedelta
 from urllib.parse import urljoin
-URL = "https://www.diariooficial.interior.gob.cl/edicionelectronica/empresas_cooperativas.php?date=08-11-2024&edition=43993"  # Ajusta según sea necesario
+
+# Fecha base y su código correspondiente
+fechaBase = datetime.strptime('11-11-2024', '%d-%m-%Y')
+edicionBase = 43995
+URL = "https://www.diariooficial.interior.gob.cl/edicionelectronica/empresas_cooperativas.php?"  # Ajusta según sea necesario
 
 def scrapper(URL):
     # URL de la sección específica
@@ -90,15 +95,37 @@ def extraer_informacion_pdf(enlace_pdf):
     capital_obt = re.search(r"(Capital|CAPITAL|capital):?[\w\s\n]*\$+[\d.]*", texto_extraido)
     capital = re.sub(r"(Capital|CAPITAL|capital):?[\w\s\n]*","",capital_obt.group(0)) if capital_obt else "no encontrado"
 
-
-
     print(nombre_notario,CVE,partes_involucradas,capital)
+
+
+def generarEdicion():
+    fechaActual = datetime.now()
+    if fechaActual.weekday()==6:  # si es domingo tendremos la fecha y edicion del sabado.
+        fechaActual= fechaActual-timedelta(1)
+        #print(fechaActual)
+    # Calcular la diferencia de días entre la fecha base y la fecha futura
+    diferencia_dias = (fechaActual - fechaBase).days
+    domingos = 0
+    for i in range(diferencia_dias + 1):
+        # Obtener la fecha de cada día en el rango
+        dia_actual = fechaBase + timedelta(days=i)
+        if dia_actual.weekday() == 6: 
+            domingos += 1
+    edicion = edicionBase + (diferencia_dias-domingos)
+    
+    return fechaActual.strftime('%d-%m-%Y'),str(edicion)
 
 
 def main():
     a = 0
     b = 0
-    empresas_datos= scrapper(URL)
+    c = 0
+    fecha,edicion= generarEdicion()
+
+    
+    d = f"date={fecha}&edition={edicion}"
+    URLcompleta = URL+d
+    empresas_datos= scrapper(URLcompleta)
         # Muestra los datos organizados
     for empresa in empresas_datos :
         if empresa['seccion'] == 'MODIFICACIÓN' and b < 2:
@@ -106,12 +133,22 @@ def main():
             print("-" * 30)
 
             b+=1
-        elif empresa['seccion'] == 'CONSTITUCIÓN' and a <10:
+        elif empresa['seccion'] == 'CONSTITUCIÓN' and a <20:
 
             print_data(empresa)
             extraer_informacion_pdf(empresa['enlace_pdf'])
             print("-" * 30)
             a +=1
+        elif empresa['seccion'] == 'DISOLUCIÓN' and c <2:
+            print_data(empresa)
+            extraer_informacion_pdf(empresa['enlace_pdf'])
+            print("-" * 30)
+            c +=1
+        elif empresa['seccion'] == 'MIGRACION':
+            print_data(empresa)
+            extraer_informacion_pdf(empresa['enlace_pdf'])
+            print("-" * 30)
+
 
 
 main()
