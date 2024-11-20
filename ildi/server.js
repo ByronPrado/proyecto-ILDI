@@ -11,7 +11,9 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // MongoDB Atlas URI
-const DB_URI = 'mongodb+srv://byronprado:hkIcDsLwt6zzvOPW@cluster0.ysq2i.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+//const DB_URI = 'mongodb+srv://byronprado:hkIcDsLwt6zzvOPW@cluster0.ysq2i.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const DB_URI = 'mongodb+srv://byronprado:hkIcDsLwt6zzvOPW@cluster0.ysq2i.mongodb.net/InformaticaLegal?retryWrites=true&w=majority&appName=Cluster0';
+
 mongoose
   .connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Conectado a MongoDB Atlas'))
@@ -27,7 +29,7 @@ const empresaSchema = new mongoose.Schema({
   CVE: String,
   capital: String,
 });
-const Empresa = mongoose.model('Empresa', empresaSchema);
+const Empresa = mongoose.model('Empresa', empresaSchema,'Empresas');
 
 // Endpoints de la API
 app.get('/', (req, res) => {

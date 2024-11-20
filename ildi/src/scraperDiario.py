@@ -134,8 +134,8 @@ def main():
     a = 0
     b = 0
     c = 0
-    #fecha,edicion= generarEdicion()
-    fecha,edicion="19-11-2024","44002"
+    fecha,edicion= generarEdicion()
+    #fecha,edicion="19-11-2024","44002" #tiene solo modificaciones esta fecha jeje
     
     d = f"date={fecha}&edition={edicion}"
     URLcompleta = URL+d
@@ -145,7 +145,7 @@ def main():
 
     guardar_en_mongodb(empresas_datos)
 
-    
+
     for empresa in empresas_datos :
         if empresa['seccion'] == 'MODIFICACIÓN' and b < 2:
             print_data(empresa)
