@@ -37,12 +37,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/empresas', async (req, res) => {
+  const { seccion } = req.query;
   try {
-      const empresas = await Empresa.find(); // Obtiene todas las empresas de MongoDB
-      res.json(empresas); // Envía los datos como JSON
+    const query = seccion ? { seccion } : {}; // Filtra por seccion si está presente
+    const empresas = await Empresa.find(query); // Supongamos que usas MongoDB
+    res.json(empresas);
   } catch (error) {
-      console.error('Error al obtener las empresas:', error);
-      res.status(500).send('Error al obtener las empresas');
+    res.status(500).json({ error: 'Error al obtener empresas' });
   }
 });
 

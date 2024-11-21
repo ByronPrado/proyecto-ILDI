@@ -17,7 +17,7 @@ cliente = MongoClient("mongodb+srv://byronprado:hkIcDsLwt6zzvOPW@cluster0.ysq2i.
 db = cliente['InformaticaLegal']  # Nombre de tu base de datos
 collection = db['Empresas']  # Nombre de tu colección
 
-def scrapper(URL):
+def scrapper(URL,fecha):
     print(f"Accediendo a {URL}")
     pag_obtenido = requests.get(URL)
     html_obt = pag_obtenido.text
@@ -54,12 +54,37 @@ def scrapper(URL):
             enlace_pdf_url = urljoin(URL, enlace_pdf['href'])  # Construimos la URL completa del PDF
 
             # Guarda la información de la empresa en una estructura organizada
-            empresas_datos.append({
-                'seccion': seccion_actual,
-                'tipo': tipo_actual,
-                'nombre_empresa': nombre_empresa_texto,
-                'enlace_pdf': enlace_pdf_url
-            })
+            cve = re.search(r'/(\d+)\.pdf$', enlace_pdf_url).group(1) if re.search(r'/(\d+)\.pdf$', enlace_pdf_url) else None
+            
+            if seccion_actual == "CONSTITUCIÓN":
+                notario,cve,capital = extraer_informacion_pdf(enlace_pdf_url)
+                empresas_datos.append({
+                    'CVE': cve,
+                    'nombre_empresa': nombre_empresa_texto,
+                    'tipo': tipo_actual,
+                    'seccion': seccion_actual,
+                    'enlace_pdf': enlace_pdf_url,
+                    'notario': notario,
+                    'Capital': capital,
+                    'fecha_consulta': fecha
+                })
+            elif seccion_actual == "MIGRACIÓN":
+                empresas_datos.append({
+                    'CVE': cve,
+                    'nombre_empresa': nombre_empresa_texto,
+                    'seccion': seccion_actual,
+                    'enlace_pdf': enlace_pdf_url,
+                    'fecha_consulta': fecha
+                })
+            else:empresas_datos.append({
+                    'CVE': cve,
+                    'nombre_empresa': nombre_empresa_texto,
+                    'tipo': tipo_actual,
+                    'seccion': seccion_actual,
+                    'enlace_pdf': enlace_pdf_url,
+                    'fecha_consulta': fecha
+                })
+
     return empresas_datos
 
 def print_data(empresa):
@@ -102,6 +127,8 @@ def extraer_informacion_pdf(enlace_pdf):
 
     print(nombre_notario,CVE,partes_involucradas,capital)
 
+    return nombre_notario,CVE,capital
+
 
 def generarEdicion():
     fechaActual = datetime.now()
@@ -140,12 +167,11 @@ def main():
     d = f"date={fecha}&edition={edicion}"
     URLcompleta = URL+d
 
-    empresas_datos= scrapper(URLcompleta)
-        # Muestra los datos organizados
+    empresas_datos= scrapper(URLcompleta,fecha)
 
     guardar_en_mongodb(empresas_datos)
 
-
+    """
     for empresa in empresas_datos :
         if empresa['seccion'] == 'MODIFICACIÓN' and b < 2:
             print_data(empresa)
@@ -167,7 +193,7 @@ def main():
             print_data(empresa)
             extraer_informacion_pdf(empresa['enlace_pdf'])
             print("-" * 30)
-
+    """
 
 
 main()
