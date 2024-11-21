@@ -37,26 +37,45 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/empresas', async (req, res) => {
-  const { seccion } = req.query;
   try {
-    const query = seccion ? { seccion } : {}; // Filtra por seccion si está presente
-    const empresas = await Empresa.find(query); // Supongamos que usas MongoDB
+    const { seccion, fecha } = req.query;
+    const filtros = {};
+
+    if (seccion) filtros.seccion = seccion;
+    if (fecha) filtros.fecha_consulta = fecha; // Filtrar por fecha (asegúrate de usar el formato correcto)
+
+    const empresas = await Empresa.find(filtros); // Ajusta según tu modelo o base de datos
     res.json(empresas);
   } catch (error) {
+    console.error('Error al obtener empresas:', error);
     res.status(500).json({ error: 'Error al obtener empresas' });
   }
 });
 
-// Endpoint para agregar una nueva empresa
-app.post('/api/empresas', async (req, res) => {
+app.get('/api/busqueda', async (req, res) => {
   try {
-    const nuevaEmpresa = new Empresa(req.body);
-    const empresaGuardada = await nuevaEmpresa.save();
-    res.status(201).json(empresaGuardada);
+    const { seccion, fecha, tipo, nombre_empresa,cve } = req.query;
+
+    // Construir el objeto de filtros de acuerdo con los parámetros recibidos
+    const filtros = {};
+
+    if (seccion) filtros.seccion = seccion;
+    if (fecha) filtros.fecha_consulta = fecha; // Asegúrate de que el atributo sea correcto
+    if (tipo) filtros.tipo = tipo; // Filtrar por tipo de empresa
+    if (nombre_empresa) filtros.nombre_empresa = { $regex: nombre_empresa, $options: 'i' }; // Búsqueda por nombre (insensible a mayúsculas/minúsculas)
+    if (cve) filtros.CVE = String(cve);
+    console.log('Filtros aplicados:', filtros); // Depuración de filtros
+    // Buscar empresas que coincidan con los filtros
+    const empresas = await Empresa.find(filtros);
+
+    res.json(empresas); // Enviar las empresas que cumplen con los filtros
   } catch (error) {
-    res.status(500).json({ error: 'Error al guardar la empresa' });
+    console.error('Error al realizar la búsqueda:', error);
+    res.status(500).json({ error: 'Error al realizar la búsqueda' });
   }
 });
+
+
 
 // Inicia el servidor
 app.listen(PORT, () => {
