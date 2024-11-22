@@ -21,11 +21,13 @@ export const obtenerEmpresas = async (seccion = '', fecha = '') => {
 // Nueva función para realizar búsqueda con filtros
 export const buscarEmpresas = async  (fecha = '', tipo = '', nombre_empresa = '',cve = '') => {
   try {
+    console.log("cve: ",cve)
     const queryParams = new URLSearchParams();
     if (fecha) queryParams.append('fecha_consulta', fecha);
     if (tipo) queryParams.append('tipo', tipo);
     if (nombre_empresa) queryParams.append('nombre_empresa', nombre_empresa);
     if (cve) queryParams.append('CVE',cve);
+    console.log(queryParams.toString())
 
     const response = await axios.get(`${API_BUSQUEDA_URL}?${queryParams.toString()}`);
     return response.data; // Devuelve los datos de la respuesta

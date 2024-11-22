@@ -45,13 +45,12 @@ const App = () => {
     });
     try {
       const empresasBuscadas = await buscarEmpresas(
-       
         fechaFiltro,
         tipoFiltro,
         nombreEmpresaFiltro,
         cveFiltro
       );
-      console.log('Datos recibidos:', empresasBuscadas); // Verifica la respuesta
+      console.log('Datos recibidos:', empresasBuscadas);
       setEmpresas(empresasBuscadas);
     } catch (error) {
       console.error('Error al realizar la búsqueda:', error);
@@ -60,8 +59,13 @@ const App = () => {
 
   const handleMostrarTodas = async () => {
     try {
-      const data = await obtenerEmpresas(seccionSeleccionada);
-      setEmpresas(data);
+      if (seccionSeleccionada === 'BUSCAR EMPRESA') {
+        const data = await obtenerEmpresas('', fechaFiltro);
+        setEmpresas(data);
+      } else {
+        const data = await obtenerEmpresas(seccionSeleccionada);
+        setEmpresas(data);
+      }
     } catch (error) {
       console.error('Error al mostrar todas las empresas:', error);
     }
@@ -71,15 +75,18 @@ const App = () => {
     <div style={{ display: 'flex', height: '100vh' }}>
       <div
         style={{
-          width: '20%',
+          width: 'auto',
+          minWidth:'200px',
           backgroundColor: '#f4f4f4',
           padding: '20px',
           borderRight: '1px solid #ddd',
+          overflowY:'auto',
         }}
       >
         <h2>Secciones</h2>
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {['CONSTITUCIÓN', 'MODIFICACIÓN', 'DISOLUCIÓN', 'MIGRACIÓN', 'Busqueda Avanzada'].map(
+        <ul style={{listStyle: 'none', padding: 10 }}>
+          
+          {['CONSTITUCIÓN', 'MODIFICACIÓN', 'DISOLUCIÓN', 'MIGRACIÓN', 'BUSCAR EMPRESA'].map(
             (seccion) => (
               <li
                 key={seccion}
@@ -119,8 +126,8 @@ const App = () => {
         </div>
 
         {/* Sección de Búsqueda Avanzada */}
-        {seccionSeleccionada === 'Busqueda Avanzada' && (
-          <div style={{ marginBottom: '20px' }}>
+        {seccionSeleccionada === 'BUSCAR EMPRESA' && (
+          <div style={{ marginBottom: '20px', flex: true }}>
             <label>
               Buscar por nombre de empresa:
               <input
@@ -130,7 +137,7 @@ const App = () => {
                 style={{ marginLeft: '10px' }}
               />
             </label>
-            <label>
+            <label style={{ marginLeft: '10px' }}>
               Tipo de empresa:
               <select
                 value={tipoFiltro}
@@ -144,7 +151,7 @@ const App = () => {
                 <option value="Sociedades por Acciones">S.P.A</option>
               </select>
             </label>
-            <label>
+            <label style={{ marginLeft: '10px', flex: true }}>
               CVE:
               <input
                 type="string"
@@ -162,7 +169,38 @@ const App = () => {
         {/* Mostrar empresas */}
         <ul>
           {empresas.map((empresa, index) => (
-            <li key={index}>{empresa.nombre_empresa}</li>
+            <li
+              key={index}
+              style={{
+                listStyleType: 'none',
+                marginBottom: '20px',
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: seccionSeleccionada === 'BUSCAR EMPRESA' ? 'bold' : 'normal',
+                  fontSize: '1.2em',
+                }}
+              >
+                {empresa.nombre_empresa}
+              </div>
+              {seccionSeleccionada === 'BUSCAR EMPRESA' && (
+                <>
+                  <div>
+                    {Object.entries(empresa).map(
+                      ([key, value]) =>
+                        key !== 'nombre_empresa' &&
+                        key !== '_id' && (
+                          <p key={key} style={{ margin: '5px 0' }}>
+                            <strong>{key.replace(/_/g, ' ')}:</strong> {value}
+                          </p>
+                        )
+                    )}
+                  </div>
+                  <hr style={{ margin: '10px 0', border: '1px solid #ccc' }} />
+                </>
+              )}
+            </li>
           ))}
         </ul>
       </div>
