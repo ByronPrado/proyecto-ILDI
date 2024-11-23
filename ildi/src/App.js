@@ -22,8 +22,14 @@ const App = () => {
   }, [seccionSeleccionada]);
 
   const formatearFecha = (fecha) => {
-    const [año, mes, día] = fecha.split('-');
-    return `${día}-${mes}-${año}`;
+    if(fecha != ''){
+      const [año, mes, día] = fecha.split('-');
+      return `${día}-${mes}-${año}`;
+    }
+    else{
+      return fecha
+    }
+    
   };
 
   const handleFiltrarPorFecha = async () => {
@@ -37,15 +43,16 @@ const App = () => {
   };
 
   const handleBusqueda = async () => {
+    const fechaFormateada = formatearFecha(fechaFiltro);
     console.log('Datos enviados:', {
-      fechaFiltro,
+      fechaFormateada,
       tipoFiltro,
       nombreEmpresaFiltro,
       cveFiltro,
     });
     try {
       const empresasBuscadas = await buscarEmpresas(
-        fechaFiltro,
+        fechaFormateada,
         tipoFiltro,
         nombreEmpresaFiltro,
         cveFiltro

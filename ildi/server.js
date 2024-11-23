@@ -54,13 +54,13 @@ app.get('/api/empresas', async (req, res) => {
 
 app.get('/api/busqueda', async (req, res) => {
   try {
-    const { seccion, fecha, tipo, nombre_empresa, CVE} = req.query;
+    const { seccion, fecha: fecha_consulta, tipo, nombre_empresa, CVE} = req.query;
 
     // Construir el objeto de filtros de acuerdo con los parámetros recibidos
     const filtros = {};
 
     if (seccion) filtros.seccion = seccion;
-    if (fecha) filtros.fecha_consulta = fecha; // Asegúrate de que el atributo sea correcto
+    if (fecha_consulta) filtros.fecha_consulta = fecha_consulta; // Asegúrate de que el atributo sea correcto
     if (tipo) filtros.tipo = tipo; // Filtrar por tipo de empresa
     if (nombre_empresa) filtros.nombre_empresa = { $regex: nombre_empresa, $options: 'i' }; // Búsqueda por nombre (insensible a mayúsculas/minúsculas)
     if (CVE) filtros.CVE = CVE;

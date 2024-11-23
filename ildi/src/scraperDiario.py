@@ -162,7 +162,7 @@ def main():
     b = 0
     c = 0
     #fecha,edicion= generarEdicion()
-    fecha,edicion="20-11-2024","44003" #tiene solo modificaciones esta fecha jeje
+    fecha,edicion="18-11-2024","44001" #tiene solo modificaciones esta fecha jeje
     
     d = f"date={fecha}&edition={edicion}"
     URLcompleta = URL+d
