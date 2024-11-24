@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-
+const nodemailer = require('nodemailer');
 const app = express();
 const PORT = 3001;
 
@@ -13,7 +13,13 @@ app.use(bodyParser.json());
 // MongoDB Atlas URI
 //const DB_URI = 'mongodb+srv://byronprado:hkIcDsLwt6zzvOPW@cluster0.ysq2i.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 const DB_URI = 'mongodb+srv://byronprado:hkIcDsLwt6zzvOPW@cluster0.ysq2i.mongodb.net/InformaticaLegal?retryWrites=true&w=majority&appName=Cluster0';
-
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // Usa el servicio de correo (por ejemplo, Gmail)
+  auth: {
+    user: 'ildiprueba356@gmail.com', // Reemplaza con tu correo
+    pass: 'Prueba2024', // Usa una contraseña de aplicación (no la contraseña normal)
+  },
+});
 mongoose
   .connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Conectado a MongoDB Atlas'))
@@ -54,7 +60,7 @@ app.get('/api/empresas', async (req, res) => {
 
 app.get('/api/busqueda', async (req, res) => {
   try {
-    const { seccion, fecha: fecha_consulta, tipo, nombre_empresa, CVE} = req.query;
+    const { seccion,fecha_consulta, tipo, nombre_empresa, CVE} = req.query;
 
     // Construir el objeto de filtros de acuerdo con los parámetros recibidos
     const filtros = {};
@@ -75,7 +81,64 @@ app.get('/api/busqueda', async (req, res) => {
   }
 });
 
+// Endpoint para enviar correos electrónicos
+app.post('/api/enviar-alerta', async (req, res) => {
+  const { email, notario, capitalMinimo } = req.body; // Recibe filtros desde el frontend
 
+  try {
+    // Construir el objeto de filtros dinámicos
+    const filtros = {};
+    if (notario) filtros.notario = notario; // Filtrar por nombre del notario
+    if (capitalMinimo) filtros.capital = { $gte: parseFloat(capitalMinimo) }; // Capital mayor o igual al especificado
+
+    // Consultar MongoDB con los filtros
+    const empresasFiltradas = await Empresa.find(filtros);
+
+    if (empresasFiltradas.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron empresas con los criterios especificados' });
+    }
+
+    // Crear el cuerpo del correo
+    const contenidoCorreo = empresasFiltradas
+      .map(
+        (empresa) =>
+          `- Nombre Empresa: ${empresa.nombre_empresa}\n  Notario: ${empresa.notario}\n  Capital: ${empresa.capital}\n`
+      )
+      .join('\n');
+
+    // Configurar transporte nodemailer
+    const transporter = nodemailer.createTransport({
+      service: 'gmail', // Cambia según el proveedor
+      auth: {
+        user: 'ildiprueba356@gmail.com',
+        pass: 'tu-contraseña-app', // Contraseña de aplicación de Gmail
+      },
+    });
+
+    // Configurar detalles del correo
+    const mailOptions = {
+      from: 'ildiprueba356@gmail.com',
+      to: email,
+      subject: 'Empresas Filtradas - Alerta ILDI',
+      text: `Hola,
+
+Se han encontrado las siguientes empresas con los filtros aplicados:
+
+${contenidoCorreo}
+
+Gracias por usar nuestros servicios.
+      `,
+    };
+
+    // Enviar el correo
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: 'Correo enviado exitosamente' });
+  } catch (error) {
+    console.error('Error al enviar la alerta:', error);
+    res.status(500).json({ error: 'Error al enviar la alerta' });
+  }
+});
 
 // Inicia el servidor
 app.listen(PORT, () => {

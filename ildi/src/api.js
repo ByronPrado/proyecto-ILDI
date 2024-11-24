@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:3001/api/empresas';
 const API_BUSQUEDA_URL = 'http://localhost:3001/api/busqueda';  // Nueva URL para búsqueda
+const API_ALERTA_URL = 'http://localhost:3001/api/enviar-alerta'; // Nueva URL para enviar alertas por correo
 
 // Función para obtener empresas con filtrado opcional por sección y fecha
 export const obtenerEmpresas = async (seccion = '', fecha = '') => {
@@ -18,12 +19,12 @@ export const obtenerEmpresas = async (seccion = '', fecha = '') => {
   }
 };
 
-// Nueva función para realizar búsqueda con filtros
-export const buscarEmpresas = async  (fecha = '', tipo = '', nombre_empresa = '',cve = '') => {
+//Función para realizar búsqueda con filtros
+export const buscarEmpresas = async  (fecha_consulta = '', tipo = '', nombre_empresa = '',cve = '') => {
   try {
     console.log("cve: ",cve)
     const queryParams = new URLSearchParams();
-    if (fecha) queryParams.append('fecha_consulta', fecha);
+    if (fecha_consulta) queryParams.append('fecha_consulta', fecha_consulta);
     if (tipo) queryParams.append('tipo', tipo);
     if (nombre_empresa) queryParams.append('nombre_empresa', nombre_empresa);
     if (cve) queryParams.append('CVE',cve);
@@ -34,5 +35,19 @@ export const buscarEmpresas = async  (fecha = '', tipo = '', nombre_empresa = ''
   } catch (error) {
     console.error('Error al realizar la búsqueda:', error);
     throw new Error('Error al realizar la búsqueda');
+  }
+};
+
+export const enviarAlertaConFiltros = async (email, notario = '', capitalMinimo = '') => {
+  try {
+    const response = await axios.post('http://localhost:3001/api/enviar-alerta', {
+      email,
+      notario,
+      capitalMinimo,
+    });
+    return response.data; // Devuelve el mensaje del backend
+  } catch (error) {
+    console.error('Error al enviar la alerta:', error);
+    throw new Error('Error al enviar la alerta');
   }
 };

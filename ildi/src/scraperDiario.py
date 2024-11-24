@@ -161,8 +161,9 @@ def main():
     a = 0
     b = 0
     c = 0
+    #fecha con 2 ediciones: https://www.diariooficial.interior.gob.cl/edicionelectronica/select_edition.php?date=22-11-2024
     #fecha,edicion= generarEdicion()
-    fecha,edicion="18-11-2024","44001" #tiene solo modificaciones esta fecha jeje
+    fecha,edicion="22-11-2024","44005" #tiene solo modificaciones esta fecha jeje
     
     d = f"date={fecha}&edition={edicion}"
     URLcompleta = URL+d

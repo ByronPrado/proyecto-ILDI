@@ -1,37 +1,59 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'; 
 import { obtenerEmpresas, buscarEmpresas } from './api';
 
 const App = () => {
   const [empresas, setEmpresas] = useState([]);
-  const [seccionSeleccionada, setSeccionSeleccionada] = useState('CONSTITUCIÓN');
+  const [seccionSeleccionada, setSeccionSeleccionada] = useState('BUSCAR EMPRESA');
   const [fechaFiltro, setFechaFiltro] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState('');
   const [nombreEmpresaFiltro, setNombreEmpresaFiltro] = useState('');
   const [cveFiltro, setCveFiltro] = useState('');
+  const [nombreNotario, setNombreNotario] = useState('');
+  const [capitalInicial, setCapitalInicial] = useState('');
+  const [CorreoAlert, setCorreoAlert] = useState('');
+  const esCorreoValido = (correo) => /\S+@\S+\.\S+/.test(correo);
 
+  // Establece la fecha actual por defecto
+  useEffect(() => {
+    const hoy = new Date().toISOString().split('T')[0]; // Obtiene la fecha de hoy en formato YYYY-MM-DD
+    setFechaFiltro(hoy); // Establece la fecha de hoy en el filtro
+  }, []);
+
+  // Obtiene las empresas cada vez que se cambie la sección seleccionada
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await obtenerEmpresas(seccionSeleccionada);
+        // Aplica el filtro de fecha al obtener las empresas
+        const fechaFormateada = formatearFecha(fechaFiltro);
+        const data = await obtenerEmpresas(seccionSeleccionada, fechaFormateada);
         setEmpresas(data);
       } catch (error) {
         console.error('Error al obtener empresas:', error);
       }
     };
     fetchData();
-  }, [seccionSeleccionada]);
+  }, [seccionSeleccionada, fechaFiltro]);  // Este useEffect depende de la fechaFiltro y seccionSeleccionada
 
   const formatearFecha = (fecha) => {
-    if(fecha != ''){
+    if (fecha !== '') {
       const [año, mes, día] = fecha.split('-');
       return `${día}-${mes}-${año}`;
+    } else {
+      return fecha;
     }
-    else{
-      return fecha
-    }
-    
   };
-
+  const enviarAlerta = async (correo, notario, capital) => {
+    // Aquí deberías integrar con la lógica de tu API o backend
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (correo && notario && capital) {
+          resolve('Correo enviado');
+        } else {
+          reject('Error al enviar el correo');
+        }
+      }, 1000);
+    });
+  };
   const handleFiltrarPorFecha = async () => {
     const fechaFormateada = formatearFecha(fechaFiltro);
     try {
@@ -44,12 +66,6 @@ const App = () => {
 
   const handleBusqueda = async () => {
     const fechaFormateada = formatearFecha(fechaFiltro);
-    console.log('Datos enviados:', {
-      fechaFormateada,
-      tipoFiltro,
-      nombreEmpresaFiltro,
-      cveFiltro,
-    });
     try {
       const empresasBuscadas = await buscarEmpresas(
         fechaFormateada,
@@ -57,159 +73,272 @@ const App = () => {
         nombreEmpresaFiltro,
         cveFiltro
       );
-      console.log('Datos recibidos:', empresasBuscadas);
       setEmpresas(empresasBuscadas);
     } catch (error) {
       console.error('Error al realizar la búsqueda:', error);
     }
   };
+  const handleEnviarAlerta = async () => {
+    if (!CorreoAlert) {
+      alert('Por favor, ingresa un correo.');
+      return;
+    }
+
+    if (!esCorreoValido(CorreoAlert)) {
+      alert('Por favor, ingresa un correo válido.');
+      return;
+    }
+
+    if (!nombreNotario && !capitalInicial) {
+      alert('Por favor, ingresa al menos un criterio de filtro (notario o capital inicial).');
+      return;
+    }
+
+    console.log('Enviando alerta con los siguientes datos:', {
+      CorreoAlert,
+      nombreNotario,
+      capitalInicial,
+    });
+
+    try {
+      const data = await enviarAlerta(CorreoAlert, nombreNotario, capitalInicial);
+      alert('Correo enviado exitosamente.');
+    } catch (error) {
+      console.error('Error al enviar correo:', error);
+      alert('Hubo un error al enviar el correo.');
+    }
+  };
 
   const handleMostrarTodas = async () => {
     try {
-      if (seccionSeleccionada === 'BUSCAR EMPRESA') {
-        const data = await obtenerEmpresas('', fechaFiltro);
-        setEmpresas(data);
-      } else {
-        const data = await obtenerEmpresas(seccionSeleccionada);
-        setEmpresas(data);
-      }
+      const fechaFormateada = formatearFecha(fechaFiltro);
+      const data = await obtenerEmpresas(seccionSeleccionada, fechaFormateada);
+      setEmpresas(data);
     } catch (error) {
       console.error('Error al mostrar todas las empresas:', error);
     }
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      {/* Banner Header */}
       <div
         style={{
-          width: 'auto',
-          minWidth:'200px',
-          backgroundColor: '#f4f4f4',
-          padding: '20px',
-          borderRight: '1px solid #ddd',
-          overflowY:'auto',
+          width: '100%',
+          backgroundColor: '#007BFF',
+          color: '#fff',
+          textAlign: 'center',
+          padding: '10px 0',
+          fontSize: '1.5em',
+          fontWeight: 'bold',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
         }}
       >
-        <h2>Secciones</h2>
-        <ul style={{listStyle: 'none', padding: 10 }}>
-          
-          {['CONSTITUCIÓN', 'MODIFICACIÓN', 'DISOLUCIÓN', 'MIGRACIÓN', 'BUSCAR EMPRESA'].map(
-            (seccion) => (
+        Empresas y Cooperativas Diario Oficial
+      </div>
+
+      <div style={{ display: 'flex', flex: 1 }}>
+        {/* Panel de Navegación */}
+        <div
+          style={{
+            width: 'auto',
+            minWidth: '200px',
+            backgroundColor: '#f4f4f4',
+            padding: '20px',
+            borderRight: '1px solid #ddd',
+            overflowY: 'auto',
+          }}
+        >
+          {/* Servicios */}
+          <h2>Servicios</h2>
+          <ul style={{ listStyle: 'none', padding: 10 }}>
+            {['BUSCAR EMPRESA', 'ALERTA EMAIL'].map((seccion) => (
               <li
                 key={seccion}
                 style={{
+                  fontWeight: 'bold',
                   padding: '10px',
                   cursor: 'pointer',
-                  backgroundColor:
-                    seccionSeleccionada === seccion ? '#ddd' : 'transparent',
+                  backgroundColor: seccionSeleccionada === seccion ? '#ddd' : 'transparent',
                 }}
                 onClick={() => setSeccionSeleccionada(seccion)}
               >
                 {seccion}
               </li>
-            )
-          )}
-        </ul>
-      </div>
+            ))}
+          </ul>
+          
+          {/* Tramites */}
+          <h2>Trámites</h2>
+          <ul style={{ listStyle: 'none', padding: 10 }}>
+            {['CONSTITUCIÓN', 'MODIFICACIÓN', 'DISOLUCIÓN', 'MIGRACIÓN'].map((seccion) => (
+              <li
+                key={seccion}
+                style={{
+                  fontWeight: 'bold',
+                  padding: '10px',
+                  cursor: 'pointer',
+                  backgroundColor: seccionSeleccionada === seccion ? '#ddd' : 'transparent',
+                }}
+                onClick={() => setSeccionSeleccionada(seccion)}
+              >
+                {seccion}
+              </li>
+            ))}
+          </ul>
 
-      <div style={{ flex: 1, padding: '20px' }}>
-        <h1>Empresas - {seccionSeleccionada}</h1>
-        <div style={{ marginBottom: '20px' }}>
-          <label>
-            Filtrar por fecha:
-            <input
-              type="date"
-              value={fechaFiltro}
-              onChange={(e) => setFechaFiltro(e.target.value)}
-              style={{ marginLeft: '10px' }}
-            />
-          </label>
-          <button onClick={handleFiltrarPorFecha} style={{ marginLeft: '10px' }}>
-            Filtrar
-          </button>
-          <button onClick={handleMostrarTodas} style={{ marginLeft: '10px' }}>
-            Mostrar Todas
-          </button>
+          
         </div>
 
-        {/* Sección de Búsqueda Avanzada */}
-        {seccionSeleccionada === 'BUSCAR EMPRESA' && (
-          <div style={{ marginBottom: '20px', flex: true }}>
-            <label>
-              Buscar por nombre de empresa:
-              <input
-                type="text"
-                value={nombreEmpresaFiltro}
-                onChange={(e) => setNombreEmpresaFiltro(e.target.value)}
-                style={{ marginLeft: '10px' }}
-              />
-            </label>
-            <label style={{ marginLeft: '10px' }}>
-              Tipo de empresa:
-              <select
-                value={tipoFiltro}
-                onChange={(e) => setTipoFiltro(e.target.value)}
-                style={{ marginLeft: '10px' }}
-              >
-                <option value="">Seleccionar tipo</option>
-                <option value="Sociedades Anónimas">S.A.</option>
-                <option value="Sociedades de Responsabilidad Limitada">S.R.L.</option>
-                <option value="Empresas Individuales de Responsabilidad Limitada">I.R.L.</option>
-                <option value="Sociedades por Acciones">S.P.A</option>
-              </select>
-            </label>
-            <label style={{ marginLeft: '10px', flex: true }}>
-              CVE:
-              <input
-                type="string"
-                value={cveFiltro}
-                onChange={(e) => setCveFiltro(e.target.value)}
-                style={{ marginLeft: '10px' }}
-              />
-            </label>
-            <button onClick={handleBusqueda} style={{ marginLeft: '10px' }}>
-              Buscar
-            </button>
-          </div>
-        )}
+        {/* Contenido Principal */}
+        <div style={{ flex: 1, padding: '20px' }}>
+          <h1>{seccionSeleccionada}</h1>
+          {seccionSeleccionada !== 'BUSCAR EMPRESA' && seccionSeleccionada !== 'ALERTA EMAIL'&& (
+            <div style={{ marginBottom: '20px' }}>
+              <label>
+                Filtrar por fecha:
+                <input
+                  type="date"
+                  value={fechaFiltro}
+                  onChange={(e) => setFechaFiltro(e.target.value)}
+                  style={{ marginLeft: '10px' }}
+                />
+              </label>
+              <button onClick={handleFiltrarPorFecha} style={{ marginLeft: '10px' }}>
+                Filtrar
+              </button>
+            </div>
+          )}
 
-        {/* Mostrar empresas */}
-        <ul>
-          {empresas.map((empresa, index) => (
-            <li
-              key={index}
-              style={{
-                listStyleType: 'none',
-                marginBottom: '20px',
-              }}
-            >
-              <div
+          {/* Sección de Búsqueda EMPRESA */}
+          {seccionSeleccionada === 'BUSCAR EMPRESA' && (
+            <div style={{ marginBottom: '20px' }}>
+              <h2>Ingresa tus datos</h2>
+              <label>
+                Nombre de empresa:
+                <input
+                  type="text"
+                  value={nombreEmpresaFiltro}
+                  onChange={(e) => setNombreEmpresaFiltro(e.target.value)}
+                  style={{ marginLeft: '10px' }}
+                />
+              </label>
+              <label>
+                Filtrar por fecha:
+                <input
+                  type="date"
+                  value={fechaFiltro}
+                  onChange={(e) => setFechaFiltro(e.target.value)}
+                  style={{ marginLeft: '10px' }}
+                />
+              </label>
+              <label style={{ marginLeft: '10px' }}>
+                Tipo de empresa:
+                <select
+                  value={tipoFiltro}
+                  onChange={(e) => setTipoFiltro(e.target.value)}
+                  style={{ marginLeft: '10px' }}
+                >
+                  <option value="">Seleccionar tipo</option>
+                  <option value="Sociedades Anónimas">S.A.</option>
+                  <option value="Sociedades de Responsabilidad Limitada">S.R.L.</option>
+                  <option value="Empresas Individuales de Responsabilidad Limitada">I.R.L.</option>
+                  <option value="Sociedades por Acciones">S.P.A</option>
+                </select>
+              </label>
+              <label style={{ marginLeft: '10px' }}>
+                CVE:
+                <input
+                  type="string"
+                  value={cveFiltro}
+                  onChange={(e) => setCveFiltro(e.target.value)}
+                  style={{ marginLeft: '10px' }}
+                />
+              </label>
+              <button onClick={handleBusqueda} style={{ marginLeft: '10px' }}>
+                Buscar
+              </button>
+            </div>
+          )}
+
+          {seccionSeleccionada === 'ALERTA EMAIL' && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <h2>Enterate de lo que deseas.</h2>
+                    <p>Recibe un correo con la informacion que necesitas, por ejemplo los tramites generados por un notario especifico
+                      o datos de empresas con un capital inicial mayor a 1.000.000.000 (mil millones)!  </p>
+                    <h3>Paso 1: Rellena el formulario con los datos de interés: </h3>
+                    <label>
+                      Nombre Notario/a:
+                      <input
+                        type="text"
+                        value={nombreNotario}
+                        onChange={(e) => setNombreNotario(e.target.value)}
+                        style={{ marginLeft: '10px' }}
+                      />
+                    </label>
+                    <label>
+                      Capital inicial:
+                      <input
+                        type="text"
+                        value={capitalInicial}
+                        onChange={(e) => setCapitalInicial(e.target.value)}
+                        style={{ marginLeft: '10px' }}
+                      />
+                    </label>
+
+                    <h3>Paso 2: Ingresa tu correo:</h3>
+
+                    <label>
+                      Correo:
+                      <input
+                        type="email"
+                        value={CorreoAlert}
+                        onChange={(e) => setCorreoAlert(e.target.value)}
+                        style={{ marginLeft: '10px' }}
+                      />
+                    </label>
+                    <button onClick={() => handleEnviarAlerta}>
+                      Acción de Nueva Sección
+                    </button>
+                  </div>)}
+          {/* Mostrar empresas */}
+          <ul>
+            {empresas.map((empresa, index) => (
+              <li
+                key={index}
                 style={{
-                  fontWeight: seccionSeleccionada === 'BUSCAR EMPRESA' ? 'bold' : 'normal',
-                  fontSize: '1.2em',
+                  listStyleType: 'none',
+                  marginBottom: '20px',
                 }}
               >
-                {empresa.nombre_empresa}
-              </div>
-              {seccionSeleccionada === 'BUSCAR EMPRESA' && (
-                <>
-                  <div>
-                    {Object.entries(empresa).map(
-                      ([key, value]) =>
-                        key !== 'nombre_empresa' &&
-                        key !== '_id' && (
-                          <p key={key} style={{ margin: '5px 0' }}>
-                            <strong>{key.replace(/_/g, ' ')}:</strong> {value}
-                          </p>
-                        )
-                    )}
-                  </div>
-                  <hr style={{ margin: '10px 0', border: '1px solid #ccc' }} />
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
+                <div
+                  style={{
+                    fontWeight: seccionSeleccionada === 'BUSCAR EMPRESA' ? 'bold' : 'normal',
+                    fontSize: '1.2em',
+                  }}
+                >
+                  {empresa.nombre_empresa}
+                </div>
+                {seccionSeleccionada === 'BUSCAR EMPRESA' && (
+                  <>
+                    <div>
+                      {Object.entries(empresa).map(
+                        ([key, value]) =>
+                          key !== 'nombre_empresa' &&
+                          key !== '_id' && (
+                            <p key={key} style={{ margin: '5px 0' }}>
+                              <strong>{key.replace(/_/g, ' ')}:</strong> {value}
+                            </p>
+                          )
+                      )}
+                    </div>
+                    <hr style={{ margin: '10px 0', border: '1px solid #ccc' }} />
+                  </>
+                )}              
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
