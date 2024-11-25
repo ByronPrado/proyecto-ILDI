@@ -11,6 +11,8 @@ const App = () => {
   const [nombreNotario, setNombreNotario] = useState('');
   const [capitalInicial, setCapitalInicial] = useState('');
   const [CorreoAlert, setCorreoAlert] = useState('');
+  const [selectedEmpresa, setSelectedEmpresa] = useState(null); // Estado para la empresa seleccionada
+
   const esCorreoValido = (correo) => /\S+@\S+\.\S+/.test(correo);
 
   // Establece la fecha actual por defecto
@@ -42,6 +44,8 @@ const App = () => {
       return fecha;
     }
   };
+
+  
   const enviarAlerta = async (correo, notario, capital) => {
     // Aquí deberías integrar con la lógica de tu API o backend
     return new Promise((resolve, reject) => {
@@ -268,106 +272,105 @@ const App = () => {
           )}
 
           {seccionSeleccionada === 'SUSCRIPCIÓN CONSULTA' && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <h2>Enterate de lo que deseas.</h2>
-                    <p>Recibe un correo con la informacion que necesitas, por ejemplo los tramites generados por un notario especifico
-                      o datos de empresas con un capital inicial mayor a 1.000.000.000 (mil millones)!  </p>
-                    <h3>Paso 1: Rellena el formulario con los datos de interés: </h3>
-                    <label style={{marginLeft: '10px'}}>
-                      Nombre Notario/a:
-                      <input
-                        type="text"
-                        value={nombreNotario}
-                        onChange={(e) => setNombreNotario(e.target.value)}
-                        style={{ marginLeft: '10px' }}
-                      />
-                    </label>
-                    <label style={{marginLeft: '10px'}}>
-                      Capital inicial:
-                      <input
-                        type="text"
-                        value={capitalInicial}
-                        onChange={(e) => setCapitalInicial(e.target.value)}
-                        style={{ marginLeft: '10px' }}
-                      />
-                    </label>
 
-                    <h3>Paso 2: Ingresa tu correo:</h3>
+            <div style={{ marginBottom: '20px' }}>
+              <h2>Enterate de lo que deseas.</h2>
+              <p>Recibe un correo con la informacion que necesitas, por ejemplo los tramites generados por un notario especifico
+                o datos de empresas con un capital inicial mayor a 1.000.000.000 (mil millones)!  </p>
+              <h3>Paso 1: Rellena el formulario con los datos de interés: </h3>
+              <label style={{marginLeft: '10px'}}>
+                Nombre Notario/a:
+                <input
+                  type="text"
+                  value={nombreNotario}
+                  onChange={(e) => setNombreNotario(e.target.value)}
+                  style={{ marginLeft: '10px' }}
+                />
+              </label>
+              <label style={{marginLeft: '10px'}}>
+                Capital inicial:
+                <input
+                  type="text"
+                  value={capitalInicial}
+                  onChange={(e) => setCapitalInicial(e.target.value)}
+                  style={{ marginLeft: '10px' }}
+                />
+              </label>
 
-                    <label style={{marginLeft: '10px'}}>
-                      Correo:
-                      <input
-                        type="email"
-                        value={CorreoAlert}
-                        onChange={(e) => setCorreoAlert(e.target.value)}
-                        style={{ marginLeft: '10px' }}
-                      />
-                    </label>
-                    <button style={{ marginLeft: '10px'}} onClick={() => handleEnviarAlerta}>
-                      Enviar 
-                    </button>
-                  </div>)}
-         {/* Mostrar empresas */}
-                <ul>
+              <h3>Paso 2: Ingresa tu correo:</h3>
 
-                  {empresas.map((empresa, index) => (
-                    <li
-                      key={index}
-                      style={{
-                        listStyleType: 'none',
-                        marginBottom: '20px',
-                        padding: '10px',
-                        border: '1px solid #ddd', // Borde sutil para cada empresa
-                        borderRadius: '8px', // Bordes redondeados
-                        backgroundColor: '#f9f9f9', // Fondo gris claro
-                        transition: 'background-color 0.3s', // Transición suave para hover
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#e0f7fa'; // Cambiar el fondo al pasar el cursor
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#f9f9f9'; // Restaurar fondo original
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontWeight: seccionSeleccionada === 'BUSCAR EMPRESA' ? 'bold' : 'normal',
-                          fontSize: '1.4em', // Tamaño de fuente más grande
-                          color: '#007BFF', // Color llamativo para el nombre de la empresa
-                          marginBottom: '10px', // Espaciado debajo del nombre
-                          cursor: 'pointer', // Cursor de tipo "mano" al pasar sobre el nombre
-                        }}
-                      >
-                        {empresa.nombre_empresa}
-                      </div>
-                      {seccionSeleccionada === 'BUSCAR EMPRESA' && (
-                        <>
-                          <div>
-                            {Object.entries(empresa).map(([key, value]) => {
-                              if (key === 'enlace_pdf') {
-                                // Si el key es 'enlace_pdf', mostramos un enlace clickeable
-                                return (
-                                  <p key={key} style={{ margin: '5px 0' }}>
-                                    <strong>{key.replace(/_/g, ' ')}:</strong> <a href={value} target="_blank" rel="noopener noreferrer">verPDF</a>
-                                  </p>
-                                );
-                              } else if (key !== 'nombre_empresa' && key !== '_id') {
-                                // Para los demás keys, mostramos el valor
-                                return (
-                                  <p key={key} style={{ margin: '5px 0' }}>
-                                    <strong>{key.replace(/_/g, ' ')}:</strong> {value}
-                                  </p>
-                                );
-                              }
-                              return null;
-                            })}
-                          </div>
-                        </>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+              <label style={{marginLeft: '10px'}}>
+                Correo:
+                <input
+                  type="email"
+                  value={CorreoAlert}
+                  onChange={(e) => setCorreoAlert(e.target.value)}
+                  style={{ marginLeft: '10px' }}
+                />
+              </label>
+              <button style={{ marginLeft: '10px'}} onClick={() => handleEnviarAlerta}>
+                Enviar 
+              </button>
+            </div>)}
+            {/* Mostrar empresas */}
+            <ul>
+            {empresas.map((empresa, index) => (
+              <li
+                key={index}
+                style={{
+                  listStyleType: 'none',
+                  marginBottom: '20px',
+                  padding: '10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  backgroundColor: '#f9f9f9',
+                  transition: 'background-color 0.3s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#e0f7fa'; // Cambiar el fondo al pasar el cursor
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f9f9f9'; // Restaurar fondo original
+                }}
+                onClick={() => setSelectedEmpresa(empresa === selectedEmpresa ? null : empresa)} // Toggle para mostrar/ocultar los detalles
+              >
+                <div
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: '1.4em',
+                    color: '#007BFF',
+                    marginBottom: '10px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {empresa.nombre_empresa}
+                </div>
 
+                {/* Mostrar los detalles de la empresa seleccionada */}
+                {selectedEmpresa && selectedEmpresa._id === empresa._id && (  // Solo mostramos los detalles de la empresa seleccionada
+                  <div style={{ marginTop: '10px', fontSize: '1em' }}>
+                    {Object.entries(empresa).map(([key, value]) => {
+                      if (key === 'enlace_pdf') {
+                        return (
+                          <p key={key} style={{ margin: '5px 0' }}>
+                            <strong>{key.replace(/_/g, ' ')}:</strong>
+                            <a href={value} target="_blank" rel="noopener noreferrer">verPDF</a>
+                          </p>
+                        );
+                      } else if (key !== 'nombre_empresa' && key !== '_id') {
+                        return (
+                          <p key={key} style={{ margin: '5px 0' }}>
+                            <strong>{key.replace(/_/g, ' ')}:</strong> {value}
+                          </p>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>
