@@ -152,7 +152,7 @@ const App = () => {
           {/* Servicios */}
           <h2>Servicios</h2>
           <ul style={{ listStyle: 'none', padding: 10 }}>
-            {['BUSCAR EMPRESA', 'ALERTA EMAIL'].map((seccion) => (
+            {['BUSCAR EMPRESA', 'SUSCRIPCIÓN CONSULTA'].map((seccion) => (
               <li
                 key={seccion}
                 style={{
@@ -193,7 +193,7 @@ const App = () => {
         {/* Contenido Principal */}
         <div style={{ flex: 1, padding: '20px' }}>
           <h1>{seccionSeleccionada}</h1>
-          {seccionSeleccionada !== 'BUSCAR EMPRESA' && seccionSeleccionada !== 'ALERTA EMAIL'&& (
+          {seccionSeleccionada !== 'BUSCAR EMPRESA' && seccionSeleccionada !== 'SUSCRIPCIÓN CONSULTA'&& (
             <div style={{ marginBottom: '20px' }}>
               <label>
                 Filtrar por fecha:
@@ -207,6 +207,9 @@ const App = () => {
               <button onClick={handleFiltrarPorFecha} style={{ marginLeft: '10px' }}>
                 Filtrar
               </button>
+              <div style={{ margin: '10px 0', fontSize: '1.2em' }}>
+                <strong>{empresas.length}</strong> coincidencias encontradas.
+              </div>
             </div>
           )}
 
@@ -223,7 +226,7 @@ const App = () => {
                   style={{ marginLeft: '10px' }}
                 />
               </label>
-              <label>
+              <label style={{marginLeft: '10px'}}>
                 Filtrar por fecha:
                 <input
                   type="date"
@@ -258,16 +261,19 @@ const App = () => {
               <button onClick={handleBusqueda} style={{ marginLeft: '10px' }}>
                 Buscar
               </button>
+              <div style={{ margin: '10px 0', fontSize: '1.2em' }}>
+                <strong>{empresas.length}</strong> coincidencias encontradas.
+              </div>
             </div>
           )}
 
-          {seccionSeleccionada === 'ALERTA EMAIL' && (
+          {seccionSeleccionada === 'SUSCRIPCIÓN CONSULTA' && (
                   <div style={{ marginBottom: '20px' }}>
                     <h2>Enterate de lo que deseas.</h2>
                     <p>Recibe un correo con la informacion que necesitas, por ejemplo los tramites generados por un notario especifico
                       o datos de empresas con un capital inicial mayor a 1.000.000.000 (mil millones)!  </p>
                     <h3>Paso 1: Rellena el formulario con los datos de interés: </h3>
-                    <label>
+                    <label style={{marginLeft: '10px'}}>
                       Nombre Notario/a:
                       <input
                         type="text"
@@ -276,7 +282,7 @@ const App = () => {
                         style={{ marginLeft: '10px' }}
                       />
                     </label>
-                    <label>
+                    <label style={{marginLeft: '10px'}}>
                       Capital inicial:
                       <input
                         type="text"
@@ -288,7 +294,7 @@ const App = () => {
 
                     <h3>Paso 2: Ingresa tu correo:</h3>
 
-                    <label>
+                    <label style={{marginLeft: '10px'}}>
                       Correo:
                       <input
                         type="email"
@@ -297,47 +303,71 @@ const App = () => {
                         style={{ marginLeft: '10px' }}
                       />
                     </label>
-                    <button onClick={() => handleEnviarAlerta}>
-                      Acción de Nueva Sección
+                    <button style={{ marginLeft: '10px'}} onClick={() => handleEnviarAlerta}>
+                      Enviar 
                     </button>
                   </div>)}
-          {/* Mostrar empresas */}
-          <ul>
-            {empresas.map((empresa, index) => (
-              <li
-                key={index}
-                style={{
-                  listStyleType: 'none',
-                  marginBottom: '20px',
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: seccionSeleccionada === 'BUSCAR EMPRESA' ? 'bold' : 'normal',
-                    fontSize: '1.2em',
-                  }}
-                >
-                  {empresa.nombre_empresa}
-                </div>
-                {seccionSeleccionada === 'BUSCAR EMPRESA' && (
-                  <>
-                    <div>
-                      {Object.entries(empresa).map(
-                        ([key, value]) =>
-                          key !== 'nombre_empresa' &&
-                          key !== '_id' && (
-                            <p key={key} style={{ margin: '5px 0' }}>
-                              <strong>{key.replace(/_/g, ' ')}:</strong> {value}
-                            </p>
-                          )
+         {/* Mostrar empresas */}
+                <ul>
+
+                  {empresas.map((empresa, index) => (
+                    <li
+                      key={index}
+                      style={{
+                        listStyleType: 'none',
+                        marginBottom: '20px',
+                        padding: '10px',
+                        border: '1px solid #ddd', // Borde sutil para cada empresa
+                        borderRadius: '8px', // Bordes redondeados
+                        backgroundColor: '#f9f9f9', // Fondo gris claro
+                        transition: 'background-color 0.3s', // Transición suave para hover
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#e0f7fa'; // Cambiar el fondo al pasar el cursor
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f9f9f9'; // Restaurar fondo original
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: seccionSeleccionada === 'BUSCAR EMPRESA' ? 'bold' : 'normal',
+                          fontSize: '1.4em', // Tamaño de fuente más grande
+                          color: '#007BFF', // Color llamativo para el nombre de la empresa
+                          marginBottom: '10px', // Espaciado debajo del nombre
+                          cursor: 'pointer', // Cursor de tipo "mano" al pasar sobre el nombre
+                        }}
+                      >
+                        {empresa.nombre_empresa}
+                      </div>
+                      {seccionSeleccionada === 'BUSCAR EMPRESA' && (
+                        <>
+                          <div>
+                            {Object.entries(empresa).map(([key, value]) => {
+                              if (key === 'enlace_pdf') {
+                                // Si el key es 'enlace_pdf', mostramos un enlace clickeable
+                                return (
+                                  <p key={key} style={{ margin: '5px 0' }}>
+                                    <strong>{key.replace(/_/g, ' ')}:</strong> <a href={value} target="_blank" rel="noopener noreferrer">verPDF</a>
+                                  </p>
+                                );
+                              } else if (key !== 'nombre_empresa' && key !== '_id') {
+                                // Para los demás keys, mostramos el valor
+                                return (
+                                  <p key={key} style={{ margin: '5px 0' }}>
+                                    <strong>{key.replace(/_/g, ' ')}:</strong> {value}
+                                  </p>
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                        </>
                       )}
-                    </div>
-                    <hr style={{ margin: '10px 0', border: '1px solid #ccc' }} />
-                  </>
-                )}              
-              </li>
-            ))}
-          </ul>
+                    </li>
+                  ))}
+                </ul>
+
         </div>
       </div>
     </div>
